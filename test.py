@@ -1,9 +1,12 @@
-# !pip install image
-# !pip install opencv-python
-# !pip install pyscreenshot
+# pip install image
+# pip install opencv-python
+# pip install pyscreenshot
 
 import numpy as np
 from time import time
+import cv2
+
+# print(cv2.__file__)
 
 
 resolutions = [

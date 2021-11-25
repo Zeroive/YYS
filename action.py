@@ -2,6 +2,8 @@ import cv2,time,os, random,sys,mss
 import numpy
 
 #检测系统
+import pyautogui
+
 if sys.platform=='darwin':
     scalar=True
 else:
@@ -18,7 +20,7 @@ def screenshot(monitor):
         dim = (width, height)
         resized = cv2.cvtColor(im, cv2.COLOR_BGRA2BGR)
         screen = cv2.resize(resized, dim, interpolation = cv2.INTER_AREA)
-        #cv2.imshow("Image", screen)
+        cv2.imshow("Image", screen)
         #print(screen.shape)
         #cv2.waitKey(0)
     else:
@@ -28,61 +30,68 @@ def screenshot(monitor):
 
     
 #在背景查找目标图片，并返回查找到的结果坐标列表，target是背景，want是要找目标
-def locate(target,want, show=bool(0), msg=bool(0)):
+def locate(want, show=bool(0), msg=bool(0)):
     loc_pos=[]
-    want,treshold,c_name=want[0],want[1],want[2]
-    result=cv2.matchTemplate(target,want,cv2.TM_CCOEFF_NORMED)
-    location=numpy.where(result>=treshold)
+    # want,treshold,c_name=want[0],want[1],want[2]
+    # result=cv2.matchTemplate(target,want,cv2.TM_CCOEFF_NORMED)
+    # location=numpy.where(result>=treshold)
+    #
+    # # location = pyautogui.locateOnScreen('images/'+c_name+'.images', confidence=treshold)
+    # # return location
+    #
+    # if msg:  #显示正式寻找目标名称，调试时开启
+    #     print(c_name,'searching... ')
+    #
+    # h,w=want.shape[:-1] #want.shape[:-1]
+    #
+    # n,ex,ey=1,0,0
+    # for pt in zip(*location[::-1]):    #其实这里经常是空的
+    #     x,y=pt[0]+int(w/2),pt[1]+int(h/2)
+    #     if (x-ex)+(y-ey)<15:  #去掉邻近重复的点
+    #         continue
+    #     ex,ey=x,y
+    #
+    #     cv2.circle(target,(x,y),10,(0,0,255),3)
+    #
+    #     if msg:
+    #         print(c_name,'we find it !!! ,at',x,y)
+    #
+    #     if scalar:
+    #         x,y=int(x)+a,int(y)
+    #     else:
+    #         x,y=int(x)+a,int(y)
+    #
+    #     loc_pos.append([x,y])
+    #
+    # if show:  #在图上显示寻找的结果，调试时开启
+    #     print('Debug: show action.locate')
+    #     cv2.imshow('we get',target)
+    #     cv2.waitKey(0)
+    #     cv2.destroyAllWindows()
+    #
+    # if len(loc_pos)==0:
+    #     #print(c_name,'not find')
+    #     pass
+    # print(get_resource_path('images') + want[2] + '.images')
+    location = pyautogui.locateOnScreen('./images/' + want[2] + '.png', confidence=0.9)
+    return location
 
-    if msg:  #显示正式寻找目标名称，调试时开启
-        print(c_name,'searching... ')
-
-    h,w=want.shape[:-1] #want.shape[:-1]
-
-    n,ex,ey=1,0,0
-    for pt in zip(*location[::-1]):    #其实这里经常是空的
-        x,y=pt[0]+int(w/2),pt[1]+int(h/2)
-        if (x-ex)+(y-ey)<15:  #去掉邻近重复的点
-            continue
-        ex,ey=x,y
-
-        cv2.circle(target,(x,y),10,(0,0,255),3)
-
-        if msg:
-            print(c_name,'we find it !!! ,at',x,y)
-
-        if scalar:
-            x,y=int(x)+a,int(y)
-        else:
-            x,y=int(x)+a,int(y)
-            
-        loc_pos.append([x,y])
-
-    if show:  #在图上显示寻找的结果，调试时开启
-        print('Debug: show action.locate')
-        cv2.imshow('we get',target)
-        cv2.waitKey(0) 
-        cv2.destroyAllWindows()
-
-    if len(loc_pos)==0:
-        #print(c_name,'not find')
-        pass
-
-    return loc_pos
+def get_resource_path(relative_path):
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 
-#按【文件内容，匹配精度，名称】格式批量聚聚要查找的目标图片，精度统一为0.95，名称为文件名
+#按【文件内容，匹配精度，名称】格式批量聚聚要查找的目标图片，精度统一为0.90，名称为文件名
 def load_imgs():
     mubiao = {}
-    if scalar:
-        path = os.getcwd() + '/png'
-    else:
-        path = os.getcwd() + '/png'
+    path = './images'
     file_list = os.listdir(path)
     for file in file_list:
         name = file.split('.')[0]
         file_path = path + '/' + file
-        a = [ cv2.imread(file_path) , 0.95, name]
+        a = [ cv2.imread(file_path) , 0.90, name]
+        # print(file_path)
         mubiao[name] = a
 
     return mubiao
@@ -105,14 +114,14 @@ def cut(screen,upleft,downright):
 
     return screen
 
-#随机偏移坐标，防止游戏的外挂检测。p是原坐标，w、n是目标图像宽高，返回目标范围内的一个随机坐标
-def cheat(p, w, h):
-    a,b = p
-    if scalar:
-        w, h = int(w/3/2), int(h/3/2)
-    else:
-        w, h = int(w/3), int(h/3)
-    c,d = random.randint(-w, w),random.randint(-h, h)
+#随机偏移坐标，防止游标戏的外挂检测。p是原坐标，w、n是目图像宽高，返回目标范围内的一个随机坐标
+def cheat(location):
+    a, b, w, h = location.left, location.top, location.width, location.height
+    # if scalar:
+    #     w, h = int(w/3/2), int(h/3/2)
+    # else:
+    #     w, h = int(w/3), int(h/3)
+    c,d = random.randint(0, w),random.randint(0, h)
     e,f = a + c, b + d
     y = [e, f]
     return(y)

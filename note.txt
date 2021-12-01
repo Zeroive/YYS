@@ -1,1 +1,4 @@
 pyinstaller --add-data 'images;images' --path="F:\Anaconda3\envs\jiaoben\lib\site-packages\cv2" yys.py
+
+--add-data 添加图片
+--path 添加库

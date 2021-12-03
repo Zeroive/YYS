@@ -1,37 +1,38 @@
-import cv2,time,os, random,sys,mss
+import cv2, time, os, random, sys, mss
 import numpy
 
-#检测系统
+# 检测系统
 import pyautogui
 
-if sys.platform=='darwin':
-    scalar=True
+if sys.platform == 'darwin':
+    scalar = True
 else:
-    scalar=False
+    scalar = False
 
-#截屏起点
-a=0
+# 截屏起点
+a = 0
+
 
 def screenshot(monitor):
     im = numpy.array(mss.mss().grab(monitor))
     if scalar:
-        width = int(im.shape[1]/2)
-        height = int(im.shape[0]/2)
+        width = int(im.shape[1] / 2)
+        height = int(im.shape[0] / 2)
         dim = (width, height)
         resized = cv2.cvtColor(im, cv2.COLOR_BGRA2BGR)
-        screen = cv2.resize(resized, dim, interpolation = cv2.INTER_AREA)
+        screen = cv2.resize(resized, dim, interpolation=cv2.INTER_AREA)
         cv2.imshow("Image", screen)
-        #print(screen.shape)
-        #cv2.waitKey(0)
+        # print(screen.shape)
+        # cv2.waitKey(0)
     else:
         screen = cv2.cvtColor(im, cv2.COLOR_BGRA2BGR)
 
     return screen
 
-    
-#在背景查找目标图片，并返回查找到的结果坐标列表，target是背景，want是要找目标
+
+# 在背景查找目标图片，并返回查找到的结果坐标列表，target是背景，want是要找目标
 def locate(want, show=bool(0), msg=bool(0)):
-    loc_pos=[]
+    loc_pos = []
     # want,treshold,c_name=want[0],want[1],want[2]
     # result=cv2.matchTemplate(target,want,cv2.TM_CCOEFF_NORMED)
     # location=numpy.where(result>=treshold)
@@ -76,13 +77,14 @@ def locate(want, show=bool(0), msg=bool(0)):
     location = pyautogui.locateOnScreen('./images/' + want[2] + '.png', confidence=0.9)
     return location
 
+
 def get_resource_path(relative_path):
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
 
-#按【文件内容，匹配精度，名称】格式批量聚聚要查找的目标图片，精度统一为0.90，名称为文件名
+# 按【文件内容，匹配精度，名称】格式批量聚聚要查找的目标图片，精度统一为0.90，名称为文件名
 def load_imgs():
     mubiao = {}
     path = './images'
@@ -90,38 +92,43 @@ def load_imgs():
     for file in file_list:
         name = file.split('.')[0]
         file_path = path + '/' + file
-        a = [ cv2.imread(file_path) , 0.90, name]
+        a = [cv2.imread(file_path), 0.90, name]
         # print(file_path)
         mubiao[name] = a
 
     return mubiao
 
-#蜂鸣报警器，参数n为鸣叫次数
+
+# 蜂鸣报警器，参数n为鸣叫次数
 def alarm(n):
     frequency = 1500
     duration = 500
 
-    if os.name=='nt':
+    if os.name == 'nt':
         import winsound
         winsound.Beep(frequency, duration)
 
-#裁剪图片以缩小匹配范围，screen为原图内容，upleft、downright是目标区域的左上角、右下角坐标
-def cut(screen,upleft,downright): 
 
-    a,b=upleft
-    c,d=downright
-    screen=screen[b:d,a:c]
+# 裁剪图片以缩小匹配范围，screen为原图内容，upleft、downright是目标区域的左上角、右下角坐标
+def cut(screen, upleft, downright):
+    a, b = upleft
+    c, d = downright
+    screen = screen[b:d, a:c]
 
     return screen
 
-#随机偏移坐标，防止游标戏的外挂检测。p是原坐标，w、n是目图像宽高，返回目标范围内的一个随机坐标
+
+# 随机偏移坐标，防止游标戏的外挂检测。p是原坐标，w、n是目图像宽高，返回目标范围内的一个随机坐标
 def cheat(location):
+    if location is None:
+        n = pyautogui.position()
+        return [n.x, n.y],
     a, b, w, h = location.left, location.top, location.width, location.height
     # if scalar:
     #     w, h = int(w/3/2), int(h/3/2)
     # else:
     #     w, h = int(w/3), int(h/3)
-    c,d = random.randint(0, w),random.randint(0, h)
-    e,f = a + c, b + d
+    c, d = random.randint(0, w), random.randint(0, h)
+    e, f = a + c, b + d
     y = [e, f]
-    return(y)
+    return y

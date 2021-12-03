@@ -83,9 +83,14 @@ def select_mode():
         start = time.time()
         command()
 
+
 # 移动到随机坐标
-def moveTo(location):
+def moveTo(location, flag=False):
     offset = action.cheat(location)
+    if flag:
+        now = pyautogui.position()
+        offset[0] = (offset[0] + now.x) / 2
+        offset[1] = (offset[1] + now.y) / 2
     print(offset)
     pyautogui.moveTo(offset[0], offset[1], duration=random.randint(1, 3))
 
@@ -1295,9 +1300,9 @@ def yaoqi():
 ########################################################
 # 当前活动
 def huodong():
-    interval = 1  # 每次间隔时间
-    num = (int)(input("请输入次数："))
-    base_time = (int)(input("请输入大致时间(s)："))
+    interval = 0.1  # 每次间隔时间
+    num = int(input("请输入次数："))
+    base_time = int(input("请输入大致时间(s)："))
     time_offset = 0
     while True and num:  # 直到取消，或者出错
         location = pyautogui.locateOnScreen('images/hdtiaozhan.png', confidence=0.9)
@@ -1307,28 +1312,29 @@ def huodong():
         #    time.sleep(2)
         #    break
         if location is None:
-            print("未识别到目标，%f秒后重新匹配..." % interval)
             next = pyautogui.locateOnScreen('images/nexttime.png', confidence=0.9)
             if next is not None:
-
                 base_time += time_offset
                 time_offset = 0
 
-                moveTo(next)
+                moveTo(next, True)
                 pyautogui.click()
+                time.sleep(1)
+                continue
+            print("未识别到目标，%f秒后重新匹配..." % interval)
             time.sleep(interval)
             interval += 0.5
-            time_offset += interval# 计算每次等待时间
+            time_offset += interval  # 计算每次等待时间
             continue
 
-        interval = 1
+        interval = 0.1
         num -= 1
 
         # pyautogui.click(location.x, location.y, clicks=1, interval=0.2, duration=0.2, button=1)
         moveTo(location)
         pyautogui.click()
 
-        t = random.uniform(base_time-5, base_time+5)
+        t = random.uniform(base_time - 5, base_time + 5)
 
         print("等待中...(%ds)" % t)
         time.sleep(t)
